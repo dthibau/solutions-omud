@@ -1,0 +1,8 @@
+- hosts: java
+  become: yes
+  vars_files:
+    - vars/spring.yml
+  roles:
+    - common
+    - springboot
+        

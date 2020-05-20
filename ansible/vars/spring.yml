@@ -1,0 +1,7 @@
+springboot_application_name: delivery-service
+
+springboot_group: delivery
+springboot_user: delivery
+
+# start with ansible/roles/springboot/files/
+springboot_src_file: ../delivery-service.jar
