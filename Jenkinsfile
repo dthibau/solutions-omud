@@ -45,25 +45,36 @@ stage('Parallel Stage') {
   }
 }
 
-stage('Déploiement artefact') {
-  agent any
-  when {
-    not {
-      branch 'master'
+  stage('Déploiement artefact') {
+    agent any
+    when {
+      not { branch 'master' }
+      beforeAgent true
     }
-    beforeAgent true
-  }
 
-  steps {
-    echo 'Deploying snapshot to Nexus.'
-    sh './mvnw --settings settings.xml -DskipTests clean deploy'
+    steps {
+      echo 'Deploying snapshot to Nexus.'
+      sh './mvnw --settings settings.xml -DskipTests clean deploy'
       dir('target/') {
         stash includes: '*.jar', name: 'service'
       }
-      
     }
-}
   }
+
+  stage('Deploiement Intégration Ansible') {
+    agent any
+    when { not { branch 'master' } } 
+    steps {
+      echo 'Deploiement en intégration via Ansible'
+      unstash 'service'
+      sh 'cp *SNAPSHOT.jar delivery-service.jar'
+      dir ('ansible') {
+        sh 'ansible-playbook delivery.yml -i hosts'
+      }
+    }
+  }
+
+}
 }
 
 def checkSonarQualityGate(){
