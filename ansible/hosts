@@ -1,0 +1,18 @@
+# This is the default ansible 'hosts' file.
+#
+
+delivery-service ansible_host=192.168.99.2 ansible_python_interpreter=/usr/bin/python3 ansible_user=vagrant 
+
+db-delivery ansible_host=192.168.99.3 ansible_python_interpreter=/usr/bin/python3 ansible_user=vagrant 
+
+[java]
+delivery-service
+
+[postgres]
+db-delivery 
+
+
+
+
+
+

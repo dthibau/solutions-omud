@@ -1,0 +1,5 @@
+- name: Include playbook for postgres db
+  import_playbook: bd_playbook.yml
+
+- name: Include playbook for springboot app
+  import_playbook: spring_playbook.yml

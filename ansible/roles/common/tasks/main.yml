@@ -1,0 +1,15 @@
+- debug:
+    msg: System {{ ansible_os_family }} 
+
+- name: apt clean cache
+  apt:
+    update_cache: yes
+    force_apt_get: yes
+
+# - name: Update all packages to the latest version
+#  apt:
+#    upgrade: dist
+#    force_apt_get: yes
+#    state: latest
+
+

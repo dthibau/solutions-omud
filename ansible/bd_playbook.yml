@@ -1,0 +1,8 @@
+- hosts: postgres
+  become: yes
+  vars_files:
+    - vars/bd.yml
+  roles:
+    - common
+    - postgres
+        
