@@ -16,6 +16,8 @@
 
 	<properties>
 		<java.version>11</java.version>
+		<jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+		<sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
 	</properties>
 
 	<dependencies>
@@ -58,6 +60,42 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			 <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>pre-unit-tests</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <!-- Ensures that the code coverage report for unit tests is created after unit tests have been run -->
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar-maven-plugin.version}</version>
+				 <executions>
+                    <!-- Ensures that the code coverage report for unit tests is created after unit tests have been run -->
+                    <execution>
+                        <id>quality-analysis</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>sonar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 		</plugins>
 	</build>
 
