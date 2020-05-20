@@ -5,7 +5,8 @@ pipeline {
     stage('Build et Tests unitaires') {
       agent any
       steps {  
-	      echo 'A COMPLETER '
+	      echo 'Building and Unit tests'
+        sh './mvnw -Dmaven.test.failure.ignore=true clean test' 
       }
       post { 
         always { 
@@ -36,6 +37,7 @@ stage('Parallel Stage') {
 }
 
 stage('Déploiement artefact') {
+  agent any
   when {
     not {
       branch 'master'
@@ -45,6 +47,7 @@ stage('Déploiement artefact') {
 
   steps {
     echo 'Deploying snapshot to Nexus.'
+    sh './mvnw --settings settings.xml -DskipTests clean deploy'
       dir('target/') {
         stash includes: '*.jar', name: 'service'
       }
