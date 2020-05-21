@@ -1,0 +1,19 @@
+spring:
+  profiles:
+    active: swagger
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - env
+        - health
+        - metrics
+        - httpTrace
+        - mappings
+        - info
+        - loggers
+  endpoint:
+    health:
+      show-details: always

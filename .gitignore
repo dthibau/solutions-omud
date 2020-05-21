@@ -1,3 +1,8 @@
+apache-jmeter-5.2.1/backups/
+**/emails-recus/
+id_rsa.pub
+**/.vagrant/
+*.log
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
