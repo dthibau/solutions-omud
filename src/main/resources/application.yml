@@ -10,7 +10,7 @@ management:
         - env
         - health
         - metrics
-        - httptrace
+        - httpTrace
         - mappings
         - info
         - loggers
