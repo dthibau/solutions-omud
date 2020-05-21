@@ -1,0 +1,33 @@
+version: '3'
+services:
+  members-document-postgresql:
+    image: postgres:9.6.5
+    volumes:
+      - members-document_db:/var/lib/postgresql
+      - members-document_data:/var/lib/postgresql/data
+    networks:
+      - back
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5434:5432
+
+  pgadmin4:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    ports:
+      - "81:80"
+    depends_on:
+      - members-document-postgresql
+    networks:
+      - back
+volumes:
+  members-document_data:
+  members-document_db:
+
+networks:
+  back:
+
