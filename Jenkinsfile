@@ -59,7 +59,7 @@ stage('Parallel Stage') {
   }
 }
 
-  stage('Déploiement SNAPSHOT Nexus') {
+  stage('Déploiement jar SNAPSHOT vers Nexus') {
     agent any
     when {
       not { branch 'master' }
@@ -72,7 +72,28 @@ stage('Parallel Stage') {
       dir('target/') {
         stash includes: '*.jar', name: 'service'
       }
+      dir('src/main/docker') {
+        stash includes: 'Dockerfile', name: 'dockerfile'
+      }
     }
+  }
+  stage('Déploiement Image latest vers Nexus') {
+    agent any
+    when { 
+        not { branch 'master' }
+    } 
+   steps {
+     unstash 'service'
+     unstash 'dockerfile'
+     script {
+       def mvnVersion = sh(returnStdout: true, script: './mvnw org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout').trim()
+       def dockerImage
+       dockerImage = docker.build('delivery-service', '.')
+        docker.withRegistry('http://localhost:10000', 'admin_nexus') {
+            dockerImage.push "$mvnVersion"
+        }
+     }
+   }     
   }
 
   stage('Deploiement Intégration Ansible') {
