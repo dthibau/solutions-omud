@@ -1,0 +1,2 @@
+CREATE DATABASE delivery;
+GRANT ALL PRIVILEGES ON DATABASE deliver TO delivery;

@@ -1,0 +1,36 @@
+version: '2'
+services:
+  delivery-postgresql:
+    image: postgres:9.6.5
+    volumes:
+      - delivery_db:/var/lib/postgresql
+      - delivery_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - back
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5434:5432
+
+  delivery-service:
+    build: .
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod,swagger
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://delivery-postgresql:5432/delivery
+      - JHIPSTER_SLEEP=10 # gives time for the database to boot before the application
+    ports:
+      - 81:8080
+    depends_on:
+      - delivery-postgresql
+    networks:
+      - back
+    
+volumes:
+  delivery_data:
+  delivery_db:
+
+networks:
+  back:
+

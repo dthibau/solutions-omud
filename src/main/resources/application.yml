@@ -10,10 +10,29 @@ management:
         - env
         - health
         - metrics
-        - httpTrace
+        - httptrace
         - mappings
         - info
         - loggers
   endpoint:
     health:
       show-details: always
+
+
+---
+spring:
+  profiles: prod
+
+  datasource:
+    url: jdbc:postgresql://localhost:5434/formation
+    username: postgres
+    password: postgres
+    hikari:
+      maximum-pool-size: 20
+      connection-timeout: 2000
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+

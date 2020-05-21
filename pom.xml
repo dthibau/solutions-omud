@@ -94,13 +94,11 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-                    <executable>true</executable>
-                    <fork>true</fork>
-                    <!--
-                    Enable the line below to have remote debugging of your application on port 5005
-                    <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</jvmArguments>
-                    -->
-                </configuration>
+					<executable>true</executable>
+					<fork>true</fork>
+					<!-- Enable the line below to have remote debugging of your application 
+						on port 5005 <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</jvmArguments> -->
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.jacoco</groupId>
@@ -124,16 +122,22 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.sonarsource.scanner.maven</groupId>
-				<artifactId>sonar-maven-plugin</artifactId>
-				<version>${sonar-maven-plugin.version}</version>
-			</plugin>
+
 		</plugins>
 	</build>
+
+
+
 	<profiles>
 		<profile>
 			<id>prod</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.postgresql</groupId>
+					<artifactId>postgresql</artifactId>
+					<scope>runtime</scope>
+				</dependency>
+			</dependencies>
 			<build>
 				<plugins>
 					<plugin>
