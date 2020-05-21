@@ -5,6 +5,20 @@ pipeline {
   }
   
   stages {
+    stage(' Pré-build tests ') {
+      agent any
+      steps {
+        script {
+          result = sh (script: "git log -1 | grep '\\[ci skip\\]'", returnStatus: true)
+          if ( result == 0 ) {
+            echo "Skipping Build due to commit msg [ci skip]..."
+            currentBuild.result = 'ABORTED'
+            error('Stopping early… due to commit msg [ci skip]')
+          }
+        }
+      }
+    }
+
     stage('Build et Tests unitaires') {
       agent any
       steps {  
@@ -96,6 +110,61 @@ stage('Parallel Stage') {
       sh './apache-jmeter-5.2.1/bin/jmeter -Duser.language=fr -Duser.country -g result.jtl -o ./report'
       archiveArtifacts 'report/**/*.*'
       cleanWs()
+    }
+  }
+
+  stage('Release') {
+  agent any
+    when { 
+        branch 'master' 
+        beforeInput true
+    } 
+    input {
+        message 'Voulez-vous effectuer une release ?'
+        ok 'Release !'
+        parameters {
+            string description: 'Prochain n° de version', name: 'newVersion'
+        }
+    }
+    steps {
+      echo 'Releasing app'
+      sh 'pwd'
+      sh 'ls -al'
+      sh 'env'
+      cleanWs()
+
+    // Push on master
+    script {
+      sh "git clone $env.GIT_URL ."
+      sh "git checkout master"
+      result = sh (script: "git log -1 | grep '\\[ci skip\\]'", returnStatus: true) 
+      if (result != 0) {
+        def mvnVersion = sh(returnStdout: true, script: './mvnw org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout').trim()
+        sh ("echo $mvnVersion")
+        mvnVersion = mvnVersion.replace('-SNAPSHOT','')
+        sh ("echo $mvnVersion à partir de $env.BRANCH_NAME")
+        sh ("./mvnw versions:set versions:commit -DnewVersion=\"$mvnVersion\" ")
+     
+        sh "git commit -a -m \'Release $mvnVersion [ci skip]\'"
+        sh "git tag $mvnVersion"
+        sh "git push origin $mvnVersion"
+        sh "git push origin master:master"
+        // Deploying to nexus release
+        sh './mvnw --settings settings.xml -DskipTests -Pprod clean deploy' 
+
+        echo 'Starting new version'
+        // Setting new version 
+        newVersion = newVersion.replace('-SNAPSHOT','') + '-SNAPSHOT'
+        sh ("echo $newVersion")
+        sh ("git checkout $env.BRANCH_NAME")
+        sh ("./mvnw versions:set versions:commit -DnewVersion=\"$newVersion\" ")
+        sh "git commit -a -m \'Starting $newVersion [ci skip]\'"
+        sh "git push origin master"
+      } else {
+        echo "Skipping release step [ci skip]..."
+      }
+      
+    }  
     }
   }
 

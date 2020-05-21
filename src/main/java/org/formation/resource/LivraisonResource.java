@@ -45,6 +45,19 @@ public class LivraisonResource {
 
 		return ResponseEntity.ok().header("Content-type", "application/json").body(optLivraison.get());
 	}
+	
+	@GetMapping("/livreur/{livraisonId}")
+	public ResponseEntity<Livraison> byLivreur(@PathVariable("livraisonId") long livraisonId) {
+
+		logger.info("Livraison-resource byId() invoked: " + livraisonId);
+		Optional<Livraison> optLivraison = livraisonRepository.findById(livraisonId);
+		if (!optLivraison.isPresent()) {
+			throw new LivraisonNotFoundException("" + livraisonId);
+		}
+		logger.info("Members-service byNumber() found: " + optLivraison.get());
+
+		return ResponseEntity.ok().header("Content-type", "application/json").body(optLivraison.get());
+	}
 
 	@PostMapping
 	public ResponseEntity<Livraison> createLivraison(String noCommande) {
