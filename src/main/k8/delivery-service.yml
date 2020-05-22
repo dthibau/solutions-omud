@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: delivery-deployment-${BRANCH_NAME}
+  name: delivery-service
   namespace: default
 spec:
   replicas: 2
@@ -38,6 +38,9 @@ spec:
               configMapKeyRef:
                 name: postgres-config
                 key: POSTGRES_SERVICE
-        image: localhost:18082/delivery-service:0.0.3
+        image: dthibau/delivery-service:0.1.6
         imagePullPolicy: Always
+      imagePullSecrets:
+        - name: regcred
+
 
