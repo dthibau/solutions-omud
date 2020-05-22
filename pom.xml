@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>org.formation</groupId>
 	<artifactId>delivery-service</artifactId>
-	<version>0.0.5</version>
+	<version>0.0.8-SNAPSHOT</version>
 	<name>Delivery-service</name>
 	<description>Demo project for DevOps</description>
 

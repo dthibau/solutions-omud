@@ -9,12 +9,12 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="SERVER_IP" elementType="Argument">
             <stringProp name="Argument.name">SERVER_IP</stringProp>
-            <stringProp name="Argument.value">${__P(SERVEUR,192.168.99.2)}</stringProp>
+            <stringProp name="Argument.value">192.168.99.2</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="SERVER_PORT" elementType="Argument">
             <stringProp name="Argument.name">SERVER_PORT</stringProp>
-            <stringProp name="Argument.value">${__P(PORT,8080)}</stringProp>
+            <stringProp name="Argument.value">8080</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>

@@ -17,7 +17,7 @@ cp ./pom.xml ${TARGET_DIRECTORY}/
 cp ./Jenkinsfile ${TARGET_DIRECTORY}/
 cp ./.gitignore ${TARGET_DIRECTORY}/
 cp ./mvn* ${TARGET_DIRECTORY}/
-cp -r /.mvn ${TARGET_DIRECTORY}/
+cp -r ./.mvn ${TARGET_DIRECTORY}/
 cp ./settings.xml ${TARGET_DIRECTORY}/
 cp -r ./ansible ${TARGET_DIRECTORY}/
 cp -r apache-jmeter-5.2.1 ${TARGET_DIRECTORY}/

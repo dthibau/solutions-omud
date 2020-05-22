@@ -83,10 +83,13 @@ stage('Parallel Stage') {
         not { branch 'master' }
     } 
    steps {
-     unstash 'service'
-     unstash 'dockerfile'
      script {
-        def mvnVersion = sh(returnStdout: true, script: './mvnw org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout').trim()
+
+      def mvnVersion = sh(returnStdout: true, script: './mvnw org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout').trim()
+
+      cleanWs()
+      unstash 'service'
+      unstash 'dockerfile'
         def dockerImage
         dockerImage = docker.build('delivery-service', '.')
         docker.withRegistry('http://localhost:10000', 'admin_nexus') {
@@ -119,8 +122,7 @@ stage('Parallel Stage') {
         sh ("envsubst < src/main/k8/postgres-config.yml | kubectl apply -f -")
         sh ("envsubst < src/main/k8/postgres-service.yml | kubectl apply -f -")
         sh ("envsubst < src/main/k8/delivery-service.yml | kubectl apply -f -")
-        def portNumber = 80 + ("${BRANCH_NAME}".hashCode())%(65535-80)
-        sh "kubectl expose deployment delivery-service-${BRANCH_NAME} --type LoadBalancer --port ${portNumber} --target-port 8080"
+        sh "kubectl expose deployment delivery-service-${BRANCH_NAME} --type LoadBalancer --port 80 --target-port 8080"
         
       }     
      }
@@ -134,12 +136,13 @@ stage('Parallel Stage') {
     steps {
       script {
         def portNumber = 80 + ("${BRANCH_NAME}".hashCode())%(65535-80)
-        sh "kubectl port-forward service/delivery-service-${BRANCH_NAME}  8080:${portNumber} &"
+        sh "kubectl port-forward service/delivery-service-${BRANCH_NAME}  ${portNumber}:80 &"
+         sleep 30 // Laisser le service redémarrer
+        echo 'Démarrage 1 users effectuant les 4 appels REST'
+        sh "./apache-jmeter-5.2.1/bin/jmeter -JSERVEUR=localhost -JPORT=${portNumber} -n -t Fonctionnel.jmx -l fonc_result.jtl"
       }
 
-      sleep 30 // Laisser le service redémarrer
-      echo 'Démarrage 1 users effectuant les 4 appels REST'
-      sh './apache-jmeter-5.2.1/bin/jmeter -JSERVEUR=localhost -n -t Fonctionnel.jmx -l fonc_result.jtl'
+     
       perfReport 'fonc_result.jtl'
     }
   }
@@ -150,10 +153,11 @@ stage('Parallel Stage') {
     steps {
       script {
         def portNumber = 80 + ("${BRANCH_NAME}".hashCode())%(65535-80)
-        sh "kubectl port-forward service/delivery-service-${BRANCH_NAME}  8080:${portNumber} &"
+        sh "kubectl port-forward service/delivery-service-${BRANCH_NAME}  ${portNumber}:80 &"
+        echo 'Démarrage 100 users effectuant 50 fois le scénario de test'
+        sh "./apache-jmeter-5.2.1/bin/jmeter -JSERVEUR=localhost -JPORT=${portNumber} -n -t LoadTest.jmx -l result.jtl"
       }
-      echo 'Démarrage 100 users effectuant 50 fois le scénario de test'
-      sh './apache-jmeter-5.2.1/bin/jmeter -JSERVEUR=localhost -n -t LoadTest.jmx -l result.jtl'
+    
       perfReport 'result.jtl'
       // Génération de rapport 
       sh 'mkdir report'
@@ -216,10 +220,13 @@ stage('Parallel Stage') {
         docker.withRegistry('http://localhost:10000', 'admin_nexus') {
             dockerImage.push "$mvnVersion"
         }
+        dockerImage = docker.build('dthibau/delivery-service', '.')
         docker.withRegistry('https://registry.hub.docker.com', 'dthibau_docker') {
             dockerImage.push "$mvnVersion"
         }
      
+        // Roll-out sur kubernetes
+        sh "kubectl set image deployment/delivery-service delivery-service=dthibau/delivery-service:${mvnVersion}"
 
         echo 'Starting new version'
         // Setting new version 
