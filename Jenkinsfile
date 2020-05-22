@@ -92,6 +92,7 @@ stage('Parallel Stage') {
         docker.withRegistry('http://localhost:10000', 'admin_nexus') {
           dockerImage.push "$mvnVersion"
         }
+        dockerImage = docker.build('dthibau/delivery-service', '.')
         docker.withRegistry('https://registry.hub.docker.com', 'dthibau_docker') {
           dockerImage.push "$mvnVersion"
         }
