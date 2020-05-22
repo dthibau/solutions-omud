@@ -10,7 +10,7 @@ management:
         - env
         - health
         - metrics
-        - httptrace
+        - httpTrace
         - mappings
         - info
         - loggers
@@ -24,9 +24,9 @@ spring:
   profiles: prod
 
   datasource:
-    url: jdbc:postgresql://localhost:5434/formation
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://${POSTGRES_SERVICE}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     hikari:
       maximum-pool-size: 20
       connection-timeout: 2000
