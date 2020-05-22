@@ -100,19 +100,46 @@ stage('Parallel Stage') {
    }     
   }
 
+  stage('Déploiement Kubernetes de recette') {
+    agent any
+    when { 
+        not { branch 'master' }
+    } 
+    steps {
+
+     script {
+        def mvnVersion = sh(returnStdout: true, script: './mvnw org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout').trim()
+        // Deploy to kubernetes
+        withEnv(["IMAGE=dthibau/delivery-service:$mvnVersion"]) {
+        def testPresenceService = sh(returnStatus: true, script: "kubectl get service | grep delivery-service-${BRANCH_NAME}")
+        echo "testPresenceService ${testPresenceService}"
+        if ( testPresenceService.equals(0) ) {
+          sh "kubectl delete service delivery-service-${BRANCH_NAME}"
+        }
+        sh ("envsubst < src/main/k8/postgres-config.yml | kubectl apply -f -")
+        sh ("envsubst < src/main/k8/postgres-service.yml | kubectl apply -f -")
+        sh ("envsubst < src/main/k8/delivery-service.yml | kubectl apply -f -")
+        def portNumber = 80 + ("${BRANCH_NAME}".hashCode())%(65535-80)
+        sh "kubectl expose deployment delivery-service-${BRANCH_NAME} --type LoadBalancer --port ${portNumber} --target-port 8080"
+        
+      }     
+     }
+   }     
+  }
+
 
   stage('Test fonctionnel JMETER') {
     agent any
     when { not { branch 'master' } } 
     steps {
-       dir ('target/classes') {
-        sh 'docker-compose down'
-        sh 'docker-compose up -d --force-recreate'
-        sh 'docker image prune -f'
-      }  
+      script {
+        def portNumber = 80 + ("${BRANCH_NAME}".hashCode())%(65535-80)
+        sh "kubectl port-forward service/delivery-service-${BRANCH_NAME}  8080:${portNumber} &"
+      }
+
       sleep 30 // Laisser le service redémarrer
       echo 'Démarrage 1 users effectuant les 4 appels REST'
-      sh './apache-jmeter-5.2.1/bin/jmeter -n -t Fonctionnel.jmx -l fonc_result.jtl'
+      sh './apache-jmeter-5.2.1/bin/jmeter -JSERVEUR=localhost -n -t Fonctionnel.jmx -l fonc_result.jtl'
       perfReport 'fonc_result.jtl'
     }
   }
@@ -121,15 +148,12 @@ stage('Parallel Stage') {
     agent any
     when { not { branch 'master' } } 
     steps {
-       dir ('target/classes') {
-        sh 'docker-compose down'
-        sh 'docker-compose up -d --force-recreate'
-        sh 'docker image prune -f'
-      }  
-      sleep 30 // Laisser le service redémarrer
-
+      script {
+        def portNumber = 80 + ("${BRANCH_NAME}".hashCode())%(65535-80)
+        sh "kubectl port-forward service/delivery-service-${BRANCH_NAME}  8080:${portNumber} &"
+      }
       echo 'Démarrage 100 users effectuant 50 fois le scénario de test'
-      sh './apache-jmeter-5.2.1/bin/jmeter -n -t LoadTest.jmx -l result.jtl'
+      sh './apache-jmeter-5.2.1/bin/jmeter -JSERVEUR=localhost -n -t LoadTest.jmx -l result.jtl'
       perfReport 'result.jtl'
       // Génération de rapport 
       sh 'mkdir report'
