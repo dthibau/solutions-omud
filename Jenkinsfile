@@ -68,7 +68,7 @@ stage('Parallel Stage') {
 
     steps {
       echo 'Deploying snapshot to Nexus.'
-      sh './mvnw --settings settings.xml -DskipTests clean deploy'
+      sh './mvnw --settings settings.xml -DskipTests -Pprod clean deploy'
       dir('target/') {
         stash includes: '*.jar', name: 'service'
       }
@@ -96,22 +96,16 @@ stage('Parallel Stage') {
    }     
   }
 
-  stage('Deploiement Intégration Ansible') {
-    agent any
-    when { not { branch 'master' } } 
-    steps {
-      echo 'Deploiement en intégration via Ansible'
-      unstash 'service'
-      sh 'cp *SNAPSHOT.jar delivery-service.jar'
-      dir ('ansible') {
-        sh 'ansible-playbook delivery.yml -i hosts'
-      }
-    }
-  }
+
   stage('Test fonctionnel JMETER') {
     agent any
     when { not { branch 'master' } } 
     steps {
+       dir ('target/classes') {
+        sh 'docker-compose down'
+        sh 'docker-compose up -d --force-recreate'
+        sh 'docker image prune -f'
+      }  
       sleep 30 // Laisser le service redémarrer
       echo 'Démarrage 1 users effectuant les 4 appels REST'
       sh './apache-jmeter-5.2.1/bin/jmeter -n -t Fonctionnel.jmx -l fonc_result.jtl'
@@ -123,6 +117,13 @@ stage('Parallel Stage') {
     agent any
     when { not { branch 'master' } } 
     steps {
+       dir ('target/classes') {
+        sh 'docker-compose down'
+        sh 'docker-compose up -d --force-recreate'
+        sh 'docker image prune -f'
+      }  
+      sleep 30 // Laisser le service redémarrer
+
       echo 'Démarrage 100 users effectuant 50 fois le scénario de test'
       sh './apache-jmeter-5.2.1/bin/jmeter -n -t LoadTest.jmx -l result.jtl'
       perfReport 'result.jtl'

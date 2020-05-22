@@ -15,7 +15,7 @@ services:
       - 5434:5432
 
   delivery-service:
-    image: localhost:18082/delivery-service:@version@ 
+    build: .
     environment:
       - SPRING_PROFILES_ACTIVE=prod,swagger
       - SPRING_DATASOURCE_URL=jdbc:postgresql://delivery-postgresql:5432/delivery
