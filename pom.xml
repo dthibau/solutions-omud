@@ -98,5 +98,34 @@
             </plugin>
 		</plugins>
 	</build>
+	<profiles>
+	  <profile>
+	    <id>prod</id>
+		<build>
+		  <plugins>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>4.0.0</version>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<executable>true</executable>
+					<fork>true</fork>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build-info</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		  </plugins>
+		</build>
+	  </profile>
+	</profiles>
 
 </project>
