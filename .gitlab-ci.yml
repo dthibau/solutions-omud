@@ -1,0 +1,110 @@
+image: "openjdk:8-jdk-alpine"
+
+variables:
+    INTEGRATION_URL: . 
+
+# Cache downloaded dependencies and plugins between builds.
+# To keep cache across branches add 'key: "$CI_JOB_NAME"'
+cache:
+    key: "$CI_JOB_NAME"
+    paths:
+    - /root/.m2/
+
+stages:
+    - Package
+    - Tests
+    - Deploy
+
+
+package:
+    stage: Package
+    except: 
+        refs:
+          - master
+    script:
+      - env
+      - echo ${CI_JOB_NAME}
+      - javac -version
+      - ./mvnw clean package
+    artifacts:
+        paths:
+            - application/target/*.jar
+
+
+unit-test:
+    stage: Tests
+    except: 
+        refs:
+          - master
+    script:
+        - echo 'Starting Tests unitaires'
+        - ./mvnw clean test
+
+integration-test:
+    stage: Tests
+    except: 
+        refs:
+          - master
+    script:
+        - echo 'Starting Integration tesrts'
+        - ./mvnw clean integration-test
+
+deploy:
+    stage: Deploy
+    except: 
+        refs:
+          - master
+    variables:
+        GIT_STRATEGY: none
+    script:
+        - echo 'Simulating Deployment'
+        - cp application/target/*.jar ${INTEGRATION_URL}
+        - ls -al ${INTEGRATION_URL}
+    dependencies:
+        - package
+
+
+deploy-prod:
+    stage: Deploy
+    only: 
+        refs:
+          - master
+    script:
+    - echo 'Simulating Deployment on prod'
+    - sleep 100
+  
+  
+variables:
+  INTEGRATION_URL: ./application
+
+
+
+deploy_review:
+  stage: Deploy
+  script: echo "Deploy a review app"
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: https://$CI_ENVIRONMENT_SLUG.example.com
+  only:
+  - branches
+  except:
+  - master
+
+deploy_staging:
+  stage: Deploy
+  script: echo "Deploy to staging server"
+  environment:
+    name: staging
+    url: https://staging.example.com
+  only:
+  - master
+
+deploy_prod:
+  stage: Deploy
+  script: echo "Deploy to production server"
+  environment:
+    name: production
+    url: https://example.com
+  when: manual
+  only:
+  - master
