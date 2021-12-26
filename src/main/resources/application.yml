@@ -1,4 +1,7 @@
 spring:
+  mvc: 
+    pathmatch: 
+      matching-strategy: ant-path-matcher
   profiles:
     active: swagger
 
@@ -17,7 +20,8 @@ management:
   endpoint:
     health:
       show-details: always
-
+      probes:
+        enabled: true
 
 ---
 spring:
